@@ -1,0 +1,19 @@
+[project]
+name = "studio-api"
+version = "0.1.0"
+description = ""
+authors = [
+    { name = "Vijay Gup;ta", email = "vijay.gupta701@gmail.com" }
+]
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "python-socketio[asgi]",
+    "python-dotenv"
+]
+
+
+[project.scripts]
+start = "main:start"  
+
+
