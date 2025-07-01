@@ -1,7 +1,7 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-
+from fastapi.exceptions import RequestValidationError
 from motor.motor_asyncio import AsyncIOMotorClient
 from router.user_router import user_router
 from router.socket_router import setup_socket_listeners
@@ -34,6 +34,7 @@ class Server:
         self._setup_routes()
         self._setup_socket_handlers()
         self._setup_error_handlers()
+        self._404_error_handlers()
 
     # ---------- Startup/Shutdown Lifecycle ----------
     def _setup_events(self):
@@ -97,22 +98,28 @@ class Server:
 
     # --------------- Error Handling -----------------
     def _setup_error_handlers(self):
+        @self.fastapi_app.exception_handler(Exception)
+        async def global_exception_handler(request: Request, exc: Exception):
+            response_data = {"status": "error", "path": request.url.path}
+            # if isinstance(exc, HTTPException):
+            #     response_data["message"] = exc.detail
+            #     return JSONResponse(status_code=exc.status_code, content=response_data)
+
+            # elif isinstance(exc, RequestValidationError):
+            #     response_data["message"] = "Validation error"
+            #     response_data["details"] = exc.errors()
+            #     return JSONResponse(status_code=422, content=response_data)
+
+            response_data["message"] = str(exc)
+            return JSONResponse(status_code=500, content=response_data)
+
+    def _404_error_handlers(self):
         @self.fastapi_app.middleware("http")
         async def global_error_handler(request: Request, call_next):
-            try:
-                response = await call_next(request)
-                if response.status_code == 404:
-                    return JSONResponse(
-                        {"message": "Route not found", "status_code": 404},
-                        status_code=404,
-                    )
-                return response
-            except Exception as e:
-                return await self._handle_exception(request, e)
-
-    async def _handle_exception(self, request: Request, error: Exception):
-        print(f"❌ Exception: {error}")
-        return JSONResponse(
-            status_code=500,
-            content={"message": "Internal Server Error", "detail": str(error)},
-        )
+            response = await call_next(request)
+            if response.status_code == 404:
+                return JSONResponse(
+                    {"message": "Route not found", "status_code": 404},
+                    status_code=404,
+                )
+            return response
