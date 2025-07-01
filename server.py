@@ -1,7 +1,10 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+
+from motor.motor_asyncio import AsyncIOMotorClient
 from router.user_router import user_router
+from router.socket_router import setup_socket_listeners
 import socketio
 import redis.asyncio as redis
 import logging
@@ -12,6 +15,10 @@ from fastapi.staticfiles import StaticFiles
 class Server:
     def __init__(self):
         self.logger = logging.getLogger("uvicorn")
+        self.mongo_client = AsyncIOMotorClient(
+            "mongodb+srv://vg100:vg100@cluster0.bszog.mongodb.net/auttodo?retryWrites=true&w=majority"
+        )
+        self.db = self.mongo_client["auttodo"]
         self.sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
         self.fastapi_app = FastAPI(title="Project API", version="1.0.0")
         self.app = socketio.ASGIApp(self.sio, self.fastapi_app)
@@ -54,6 +61,7 @@ class Server:
             request.state.sio = self.sio
             request.state.redis = self.redis_client
             request.state.logger = self.logger
+            request.state.db = self.db
             return await call_next(request)
 
         @self.fastapi_app.middleware("http")
@@ -76,6 +84,8 @@ class Server:
 
     # --------------- Socket.IO Handlers -------------
     def _setup_socket_handlers(self):
+        setup_socket_listeners(self.sio)
+
         @self.sio.event
         async def connect(sid, environ):
             print(f"🟢 Socket connected: {sid}")
