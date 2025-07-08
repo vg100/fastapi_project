@@ -1,7 +1,9 @@
 from fastapi import Request, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from model.user_model import UserModel
 from bson import ObjectId
+from ai_agents.gemini_agent import gemini_agent
+import httpx
 
 # await request.state.redis.set("message", "Hello Redis Cloud!")
 # await request.state.sio.emit("user_signup", {"message": "New signup!"})
@@ -36,3 +38,49 @@ class UserController:
             status_code=200,
             content={"message": "Login successful", "user": user},
         )
+
+    @staticmethod
+    async def stream(request: Request):
+        prompt = request.query_params.get("prompt")
+        if not prompt:
+            return StreamingResponse(
+                iter(["Missing 'prompt' query parameter"]), media_type="text/plain"
+            )
+
+        async def generator():
+            # calling async method that yields normally
+            async for chunk in gemini_agent.stream(prompt):
+                yield chunk
+
+        return StreamingResponse(generator(), media_type="text/plain")
+
+    @staticmethod
+    async def receive_whatsapp_message(request: Request):
+        BLOCKED_NUMBERS = ["919876543210", "911234567890"]
+        chat_id = body["data"].get("chatId", "")
+        body = await request.json()
+        sender = body["data"].get("from")
+        message = body["data"].get("body")
+        print(message, sender)
+
+        # Skip blocked numbers
+        if sender in BLOCKED_NUMBERS:
+            print(f"Blocked user: {sender}")
+            return {"status": "ignored"}
+
+        # Skip group chats
+        if "@g.us" in chat_id:
+            print("Group message skipped")
+            return {"status": "group_skipped"}
+
+        if sender and message:
+            reply = gemini_agent.ask(message)
+
+            # Send reply back to WhatsApp user
+            async with httpx.AsyncClient() as client:
+                await client.post(
+                    "https://api.ultramsg.com/instance129831/messages/chat",
+                    params={"token": "lu09e8bsqanwvexc"},
+                    json={"to": sender, "body": reply},
+                )
+        return {"status": "ok"}
