@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Notification Tester</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+    }
+    input, button {
+      margin: 5px;
+      padding: 8px;
+    }
+    #log {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      height: 200px;
+      overflow-y: scroll;
+      background: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+  <h2>🔔 Socket.IO Notification Tester</h2>
+
+  <label>User ID:</label>
+  <input type="text" id="userIdInput" placeholder="Enter user ID" />
+  <button onclick="subscribe()">Subscribe</button>
+  <br>
+
+  <label>Message:</label>
+  <input type="text" id="messageInput" placeholder="Enter message" />
+  <button onclick="sendToUser()">Send to User</button>
+  <button onclick="broadcast()">Broadcast</button>
+
+  <div id="log"></div>
+
+  <script>
+    const socket = io("http://localhost:5000"); // 🔁 Replace with your backend address if needed
+
+    function log(msg) {
+      const logDiv = document.getElementById("log");
+      logDiv.innerHTML += `<div>👉 ${msg}</div>`;
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    socket.on("connect", () => {
+      log(`🟢 Connected with ID: ${socket.id}`);
+    });
+
+    socket.on("notification:subscribed", (data) => {
+      log(`✅ Subscribed: ${JSON.stringify(data)}`);
+    });
+
+    socket.on("notification:receive", (data) => {
+      log(`📩 Notification received: ${data.message}`);
+    });
+
+    socket.on("notification:error", (data) => {
+      log(`❌ Error: ${data.message}`);
+    });
+
+    function subscribe() {
+      const userId = document.getElementById("userIdInput").value;
+      socket.emit("notification:subscribe", { user_id: userId });
+    }
+
+    function sendToUser() {
+      const userId = document.getElementById("userIdInput").value;
+      const message = document.getElementById("messageInput").value;
+      socket.emit("notification:send", { user_id: userId, message: message });
+    }
+
+    function broadcast() {
+      const message = document.getElementById("messageInput").value;
+      socket.emit("notification:broadcast", { message: message });
+    }
+  </script>
+</body>
+</html>

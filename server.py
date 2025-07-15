@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from motor.motor_asyncio import AsyncIOMotorClient
 from router.user_router import user_router
-from router.socket_router import setup_socket_listeners
+from router.notification_router import NotificationSocketRouter
 import socketio
 import redis.asyncio as redis
 import logging
@@ -99,7 +99,7 @@ class Server:
 
     # --------------- Socket.IO Handlers -------------
     def _setup_socket_handlers(self):
-        setup_socket_listeners(self.sio)
+        NotificationSocketRouter(self.sio)
 
         @self.sio.event
         async def connect(sid, environ):
