@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from model.user_model import UserModel
 from bson import ObjectId
 from ai_agents.gemini_agent import gemini_agent
+from utils.utils import create_access_token
 import httpx
 
 # await request.state.redis.set("message", "Hello Redis Cloud!")
@@ -34,9 +35,24 @@ class UserController:
 
         if "_id" in user and isinstance(user["_id"], ObjectId):
             user["_id"] = str(user["_id"])
+            token = create_access_token({"sub": user["_id"], "email": user["email"]})
         return JSONResponse(
             status_code=200,
-            content={"message": "Login successful", "user": user},
+            content={"message": "Login successful", "user": user, "token": token},
+        )
+
+    @staticmethod
+    async def get_profile(request: Request):
+        db = request.state.db
+        user = await db["users"].find_one({"email": request.state.user["email"]})
+        if not user:
+            raise Exception("User not found")
+
+        if "_id" in user and isinstance(user["_id"], ObjectId):
+            user["_id"] = str(user["_id"])
+        return JSONResponse(
+            status_code=200,
+            content={"user": user},
         )
 
     @staticmethod

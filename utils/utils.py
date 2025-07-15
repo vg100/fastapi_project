@@ -2,8 +2,8 @@
 
 import os
 import json
-from datetime import datetime
-from typing import Any
+from datetime import datetime, timedelta
+import jwt
 
 
 # Logging helper
@@ -45,6 +45,13 @@ def sizeof_fmt(num: int, suffix="B") -> str:
             return f"{num:.1f}{unit}{suffix}"
         num /= 1024
     return f"{num:.1f}Y{suffix}"
+
+
+def create_access_token(data: dict, expires_delta: timedelta = None):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=60))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, "python", algorithm="HS256")
 
 
 if __name__ == "__main__":

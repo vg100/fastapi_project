@@ -13,6 +13,9 @@ class UserRouter:
     def _getRouter(self):
         self.router.get("/stream")(UserController.stream)
         self.router.get("/ascii")(AsciiArchitectureAgent.generate_diagram)
+        self.router.get("/profile", dependencies=[Depends(verify_token)])(
+            UserController.get_profile
+        )
 
     def _postRouter(self):
         self.router.post(

@@ -1,0 +1,151 @@
+
+Basic Data Structures and Algorithms (DSA) in Python
+====================================================
+
+1. Data Structures
+------------------
+a) Built-in Structures
+   - List
+   - Tuple
+   - Set
+   - Dictionary
+
+b) Linear Data Structures
+   - Stack
+   - Queue
+   - Linked List (Singly & Doubly)
+
+c) Non-Linear Data Structures
+   - Tree (Binary Tree, BST)
+   - Graph (Adjacency List, Matrix)
+
+2. Algorithms
+-------------
+a) Sorting Algorithms
+   - Bubble Sort
+   - Selection Sort
+   - Insertion Sort
+   - Merge Sort
+   - Quick Sort
+
+b) Searching Algorithms
+   - Linear Search
+   - Binary Search
+
+c) Recursion
+   - Factorial
+   - Fibonacci
+   - Tower of Hanoi
+
+d) Greedy Algorithms
+   - Coin Change
+   - Activity Selection
+
+e) Divide and Conquer
+   - Merge Sort
+   - Binary Search
+
+f) Dynamic Programming (DP)
+   - Fibonacci with Memoization
+   - 0/1 Knapsack
+   - Longest Common Subsequence (LCS)
+
+g) Graph Algorithms
+   - BFS
+   - DFS
+   - Dijkstra's Algorithm
+   - Topological Sort
+
+3. Bonus Topics
+---------------
+- Hashing
+- Bit Manipulation
+- Sliding Window
+- Two Pointer Technique
+- Heap (Min/Max Heap)
+- Trie (Prefix Tree)
+
+Example: Stack in Python
+-------------------------
+stack = []
+stack.append(10)
+stack.append(20)
+print(stack.pop())  # Output: 20
+
+Example: Binary Search
+-----------------------
+def binary_search(arr, target):
+    low, high = 0, len(arr)-1
+    while low <= high:
+        mid = (low + high)//2
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            low = mid + 1
+        else:
+            high = mid - 1
+    return -1
+
+
+Bubble Sort
+===========
+
+Description:
+------------
+Bubble Sort repeatedly steps through the list, compares adjacent elements and swaps them
+if they are in the wrong order. This process is repeated until the list is sorted.
+
+Time Complexity:
+----------------
+Best: O(n)
+Average: O(n^2)
+Worst: O(n^2)
+
+Python Code:
+------------
+def bubble_sort(arr):
+    n = len(arr)
+    for i in range(n):
+        swapped = False
+        for j in range(0, n - i - 1):
+            if arr[j] > arr[j + 1]:
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+                swapped = True
+        if not swapped:
+            break
+    return arr
+
+# Example
+arr = [64, 34, 25, 12, 22, 11, 90]
+print("Sorted array:", bubble_sort(arr))
+
+
+Selection Sort
+==============
+
+Description:
+------------
+Selection Sort sorts an array by repeatedly finding the minimum element from the unsorted 
+part and putting it at the beginning.
+
+Time Complexity:
+----------------
+Best: O(n^2)
+Average: O(n^2)
+Worst: O(n^2)
+
+Python Code:
+------------
+def selection_sort(arr):
+    n = len(arr)
+    for i in range(n):
+        min_idx = i
+        for j in range(i+1, n):
+            if arr[j] < arr[min_idx]:
+                min_idx = j
+        arr[i], arr[min_idx] = arr[min_idx], arr[i]
+    return arr
+
+# Example
+arr = [64, 25, 12, 22, 11]
+print("Sorted array:", selection_sort(arr))
