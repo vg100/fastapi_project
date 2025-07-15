@@ -5,6 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from motor.motor_asyncio import AsyncIOMotorClient
 from router.user_router import user_router
 from router.notification_router import NotificationSocketRouter
+from router.music_router import MusicSocketRouter
 import socketio
 import redis.asyncio as redis
 import logging
@@ -95,11 +96,15 @@ class Server:
         self.fastapi_app.mount(
             "/uploads", StaticFiles(directory="uploads"), name="upload"
         )
+        # All routes
         self.fastapi_app.include_router(user_router, prefix="/auth", tags=["Auth"])
 
     # --------------- Socket.IO Handlers -------------
     def _setup_socket_handlers(self):
+
+        # Register socket route handlers
         NotificationSocketRouter(self.sio)
+        MusicSocketRouter(self.sio)
 
         @self.sio.event
         async def connect(sid, environ):

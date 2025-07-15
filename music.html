@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Socket.IO Music Player</title>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; text-align: center; }
+    audio { width: 100%; max-width: 500px; margin-top: 20px; }
+    input, button { margin: 5px; padding: 10px; font-size: 16px; }
+  </style>
+</head>
+<body>
+
+  <h2>🎵 Real-Time Music Player</h2>
+
+  <input id="roomId" placeholder="Room ID" />
+  <input id="user" placeholder="Your Name" />
+  <button onclick="joinRoom()">Join Room</button>
+  <br/>
+
+  <audio id="audioPlayer" controls>
+    <source id="audioSource" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+
+  <br/>
+  <button onclick="sendPlay()">▶️ Play</button>
+  <button onclick="sendPause()">⏸️ Pause</button>
+  <button onclick="sendSeek()">⏩ Seek to 30s</button>
+
+  <script>
+    const socket = io("http://localhost:5000"); // Change to your server
+
+    const audio = document.getElementById("audioPlayer");
+    let roomId = "";
+
+    function joinRoom() {
+      roomId = document.getElementById("roomId").value;
+      const user = document.getElementById("user").value;
+      socket.emit("music:join_room", { roomId, user });
+    }
+
+    function sendPlay() {
+      const currentTime = audio.currentTime;
+      socket.emit("music:play", { roomId, timestamp: currentTime });
+    }
+
+    function sendPause() {
+      const currentTime = audio.currentTime;
+      socket.emit("music:pause", { roomId, timestamp: currentTime });
+    }
+
+    function sendSeek() {
+      audio.currentTime = 30;
+      socket.emit("music:seek", { roomId, timestamp: 30 });
+    }
+
+    // Handle socket events from server
+    socket.on("music:play", data => {
+      if (audio.paused) {
+        audio.currentTime = data.timestamp || 0;
+        audio.play();
+      }
+    });
+
+    socket.on("music:pause", data => {
+      audio.pause();
+    });
+
+    socket.on("music:seek", data => {
+      audio.currentTime = data.timestamp;
+    });
+
+    socket.on("music:user_joined", data => {
+      alert(`${data.user} joined the room`);
+    });
+  </script>
+</body>
+</html>
